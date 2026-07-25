@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+:root {
+  --background: #181715;
+  --foreground: #faf9f5;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  /* Anthropic Brand Colors - Dark Mode Mapped */
+  --color-brand-primary: #cc785c;
+  --color-brand-primary-active: #a9583e;
+  --color-brand-primary-disabled: #3d3d3a;
+  
+  --color-brand-canvas: #181715;
+  --color-brand-surface-soft: #1f1e1b;
+  --color-brand-surface-card: #252320;
+  
+  /* Deep dark surfaces for terminal/footer when in dark mode */
+  --color-brand-surface-dark: #111111;
+  --color-brand-surface-dark-elevated: #181715;
+  --color-brand-surface-dark-soft: #1f1e1b;
+  
+  --color-brand-hairline: #3d3d3a;
+  
+  --color-brand-success: #10b981;
+  --color-brand-error: #ef4444;
+  --color-brand-accent-teal: #14b8a6;
+  
+  --color-brand-ink: #faf9f5;
+  --color-brand-body: #a09d96;
+  --color-brand-muted: #8e8b82;
+  --color-brand-muted-soft: #6c6a64;
+  
+  --color-brand-on-primary: #ffffff;
+  --color-brand-on-dark: #faf9f5;
+  --color-brand-on-dark-soft: #a09d96;
+}
+
+/* Remove dark mode preference as this design relies on specific surface alternations */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
