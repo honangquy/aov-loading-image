@@ -75,7 +75,7 @@ Quy trình thao tác trên Giao diện Web được thiết kế tự động v�
 3. **Bước 3: Thiết lập quyền chia sẻ**
    - Cấu hình trạng thái "Công khai" (Public) hoặc "Riêng tư" (Private) cho danh sách ảnh của bạn thông qua nút gạt.
 4. **Bước 4: Kích hoạt hệ thống**
-   - Bấm nút "Kích hoạt hệ thống" để bắt đầu nén ảnh, sanitize, và tải lên máy chủ thông qua quy trình Brutal Mode mạnh mẽ.
+   - Bấm nút "Kích hoạt hệ thống" để bắt đầu xử lý ảnh (giữ nguyên độ nét gốc), sanitize, và tải lên máy chủ thông qua quy trình Brutal Mode mạnh mẽ.
 
 ## Triết lý và Nguyên tắc Thiết kế
 

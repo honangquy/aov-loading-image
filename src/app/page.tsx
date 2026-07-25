@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, Image as ImageIcon, Play, Settings, Loader2, CheckCircle2, AlertCircle, RefreshCcw } from 'lucide-react';
-import imageCompression from 'browser-image-compression';
+
 
 type LogItem = {
   time: string;
@@ -60,21 +60,9 @@ export default function Home() {
   };
 
   const processImage = async (file: File): Promise<Blob> => {
-    addLog(`Đang xử lý ảnh: ${file.name}`, 'info');
-    const options = {
-      maxSizeMB: 0.1, // ~100KB target
-      maxWidthOrHeight: 1701,
-      useWebWorker: true
-    };
-    
-    try {
-      const compressedFile = await imageCompression(file, options);
-      addLog(`Đã nén ${file.name} xuống ${(compressedFile.size / 1024).toFixed(1)} KB`, 'success');
-      return compressedFile;
-    } catch (error) {
-      addLog(`Lỗi nén ảnh ${file.name}`, 'error');
-      return file;
-    }
+    addLog(`Sử dụng ảnh gốc (không nén): ${file.name}`, 'info');
+    // Bỏ qua imageCompression, giữ nguyên độ nét
+    return file;
   };
 
   const startBrutalMode = async () => {
