@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, Image as ImageIcon, Play, Settings, Loader2, CheckCircle2, AlertCircle, RefreshCcw } from 'lucide-react';
+import imageCompression from 'browser-image-compression';
 
 
 type LogItem = {
@@ -14,6 +15,28 @@ export default function Home() {
   const [harData, setHarData] = useState<any>(null);
   const [authUrl, setAuthUrl] = useState('');
   const [images, setImages] = useState<File[]>([]);
+
+  // Load saved token on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('savedToken');
+    if (saved) {
+      setAuthUrl(saved);
+    }
+  }, []);
+
+  const handleAuthUrlChange = (val: string) => {
+    setAuthUrl(val);
+    if (val) {
+      localStorage.setItem('savedToken', val);
+    } else {
+      localStorage.removeItem('savedToken');
+    }
+  };
+
+  const clearSavedToken = () => {
+    setAuthUrl('');
+    localStorage.removeItem('savedToken');
+  };
   const [logs, setLogs] = useState<LogItem[]>([]);
   const [status, setStatus] = useState<'IDLE' | 'RUNNING' | 'DONE' | 'ERROR'>('IDLE');
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -60,9 +83,20 @@ export default function Home() {
   };
 
   const processImage = async (file: File): Promise<Blob> => {
-    addLog(`Sử dụng ảnh gốc (không nén): ${file.name}`, 'info');
-    // Bỏ qua imageCompression, giữ nguyên độ nét
-    return file;
+    try {
+      addLog(`Đang nén ảnh: ${file.name}...`, 'info');
+      const options = {
+        maxSizeMB: 0.8,
+        maxWidthOrHeight: 1701,
+        useWebWorker: true,
+      };
+      const compressedFile = await imageCompression(file, options);
+      addLog(`Đã nén ảnh thành công (${(compressedFile.size / 1024).toFixed(2)} KB)`, 'success');
+      return compressedFile;
+    } catch (error) {
+      addLog(`Lỗi nén ảnh, sử dụng ảnh gốc: ${error}`, 'error');
+      return file;
+    }
   };
 
   const startBrutalMode = async () => {
@@ -262,7 +296,7 @@ export default function Home() {
           originalExt = '.gif';
         }
 
-        // 2. Upload Large & Small images to COS
+        // 2. Upload Large & Small images to COS concurrently
         const uploadToCos = async (suffix: string, b64Data: string, contentType: string = 'image/png') => {
           const fileName = `0/1/${pid}${suffix}`;
           addLog(`Xin cấp quyền đăng tải ${fileName}...`, 'info');
@@ -287,17 +321,22 @@ export default function Home() {
              const errText = await cosRes.json().catch(()=>({}));
              throw new Error(`COS upload failed: ${errText.error || 'Server Error'}`);
           }
+          addLog(`Tải xong ${fileName}`, 'success');
           return creds;
         };
 
-        const credsMain = await uploadToCos('.png', b64Image); // main image
-        await uploadToCos('_large.png', b64Image); // large image - required by Garena validation
-        
+        const uploadPromises = [
+          uploadToCos('.png', b64Image), // main image
+          uploadToCos('_large.png', b64Image) // large image
+        ];
+
         if (originalB64 && originalExt) {
           addLog(`Đang tải tệp động ${originalExt}...`, 'info');
           const mimeType = originalExt === '.mp4' ? 'video/mp4' : 'image/gif';
-          await uploadToCos(originalExt, originalB64, mimeType);
+          uploadPromises.push(uploadToCos(originalExt, originalB64, mimeType));
         }
+
+        const [credsMain] = await Promise.all(uploadPromises);
 
         const picInfo = {
           bg: {
@@ -339,8 +378,8 @@ export default function Home() {
         return;
       }
 
-      addLog(`Đang đợi 2s trước khi qua ảnh tiếp theo...`, 'info');
-      await new Promise(r => setTimeout(r, 2000));
+      addLog(`Đang đợi 500ms trước khi qua ảnh tiếp theo...`, 'info');
+      await new Promise(r => setTimeout(r, 500));
     }
 
     addLog('HOÀN THÀNH BRUTAL MODE!', 'success');
@@ -431,16 +470,26 @@ export default function Home() {
               
               <div className="space-y-5">
                 <div>
-                  <label htmlFor="authUrl" className="block text-sm font-medium text-brand-ink mb-1.5">
-                    Mã Token (msdk-itopencodeparam) hoặc Link sự kiện
-                  </label>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label htmlFor="authUrl" className="block text-sm font-medium text-brand-ink">
+                      Mã Token (msdk-itopencodeparam) hoặc Link sự kiện
+                    </label>
+                    {authUrl && (
+                      <button 
+                        onClick={clearSavedToken}
+                        className="text-xs text-brand-error hover:text-red-700 transition-colors font-medium cursor-pointer"
+                      >
+                        Xoá token
+                      </button>
+                    )}
+                  </div>
                   <input 
                     id="authUrl"
                     type="text" 
                     className="w-full border border-brand-hairline rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all placeholder:text-brand-muted"
                     placeholder="Dán chuỗi token 775F36C1... hoặc link https://..."
                     value={authUrl}
-                    onChange={(e) => setAuthUrl(e.target.value)}
+                    onChange={(e) => handleAuthUrlChange(e.target.value)}
                   />
                 </div>
                 
